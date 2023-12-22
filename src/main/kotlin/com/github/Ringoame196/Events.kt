@@ -1,35 +1,32 @@
 package com.github.Ringoame196
 
-import com.github.Ringoame196.Entity.ArmorStand
 import org.bukkit.ChatColor
-import org.bukkit.Material
+import org.bukkit.GameMode
 import org.bukkit.Sound
-import org.bukkit.block.CommandBlock
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-import org.bukkit.event.block.Action
-import org.bukkit.event.player.PlayerInteractEvent
+import org.bukkit.event.player.PlayerToggleSneakEvent
 import org.bukkit.plugin.Plugin
 
 class Events(private val plugin: Plugin) : Listener {
     @EventHandler
-    fun onPlayerInteract(e: PlayerInteractEvent) {
-        var commandBlock = e.clickedBlock ?: return
-        val item = e.item ?: return
+    fun onPlayerMove(e: PlayerToggleSneakEvent) {
+        val sneak = e.isSneaking
         val player = e.player
-        val location = commandBlock.location.clone().add(0.5, 1.0, 0.5)
-        val action = e.action
-        if (action != Action.RIGHT_CLICK_BLOCK) { return }
-        if (item.type != Material.GOLDEN_AXE) { return }
-        val commandBlock2 = commandBlock.state as CommandBlock
-        e.isCancelled = true
-        val armorStandClass = ArmorStand()
-        val commandBlockClass = CommandBlock()
         val playerClass = Player(player)
-        val command = commandBlockClass.acquisitionCommand(commandBlock2)
-        val armorStand = armorStandClass.summonArmorStand(location, command)
-        playerClass.sendActionBar("${ChatColor.YELLOW}---コマンド表示---")
-        player.playSound(player, Sound.BLOCK_NOTE_BLOCK_BELL, 1f, 1f)
-        armorStandClass.deletingAfterNseconds(plugin, armorStand, 5)
+        if (!sneak) { return }
+        if (!player.isOp) { return }
+        if (player.gameMode != GameMode.CREATIVE) { return }
+        val commandBlockClass = CommandBlock()
+        val commandBlocks = commandBlockClass.commandBlocks
+        val block = player.getTargetBlockExact(5) ?: return
+        if (!commandBlocks.contains(block.type)) { return }
+        val commandBlock = block.state as org.bukkit.block.CommandBlock
+        player.sendTitle("", commandBlockClass.acquisitionCommand(commandBlock), 0, 60, 0)
+        playerClass.sendActionBar(
+            "${ChatColor.YELLOW}種類:${commandBlocks[block.type]} " +
+                "${ChatColor.YELLOW}条件:${ChatColor.GOLD}${commandBlock.blockData.toString().contains("conditional=true")}"
+        )
+        player.playSound(player, Sound.ENTITY_ARROW_HIT_PLAYER, 0.5f, 0.5f)
     }
 }
