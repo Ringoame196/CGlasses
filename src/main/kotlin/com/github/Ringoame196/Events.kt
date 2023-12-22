@@ -25,7 +25,7 @@ class Events(private val plugin: Plugin) : Listener {
         player.sendTitle("", commandBlockClass.acquisitionCommand(commandBlock), 0, 60, 0)
         playerClass.sendActionBar(
             "${ChatColor.YELLOW}種類:${commandBlocks[block.type]} " +
-                "${ChatColor.YELLOW}条件:${ChatColor.GOLD}${commandBlock.blockData.toString().contains("conditional=true")}"
+                "${ChatColor.YELLOW}条件:${ChatColor.GOLD}${commandBlockClass.isConditional(commandBlock)}"
         )
         player.playSound(player, Sound.ENTITY_ARROW_HIT_PLAYER, 0.5f, 0.5f)
     }
